@@ -5,15 +5,25 @@
 mod block;
 mod dir;
 mod error;
-mod file;
 
 #[cfg(feature = "std")]
 mod standard;
 
 extern crate alloc;
+extern crate core;
 
 #[cfg(feature = "std")]
 pub use standard::*;
 
-pub use block::*;
-pub mod fs;
+mod fs;
+
+mod debug;
+mod file;
+mod types;
+
+pub use block::{
+    BlockDevice, BlockDeviceConfig, BlockDeviceInterface, MountHandle, RegisterHandle,
+};
+pub use debug::*;
+pub use fs::FileSystem;
+pub use types::{DebugFlags, FileTimes, MetaDataExt, Metadata, MountStats, Permissions, Time};

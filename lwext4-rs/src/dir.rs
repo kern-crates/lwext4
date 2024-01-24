@@ -1,9 +1,10 @@
 use crate::block::CName;
-use crate::file::FileType;
+use crate::error::{Error, Result};
+use crate::types::FileType;
 use alloc::string::{String, ToString};
 use core::ffi::CStr;
 use core::fmt::Debug;
-use core::intrinsics::transmute;
+use core::mem::transmute;
 use lwext4_sys::ext4::*;
 
 pub struct ReadDir {
@@ -27,7 +28,7 @@ impl Drop for ReadDir {
 
 impl ReadDir {
     /// Reset the directory stream to the beginning.
-    pub fn reset(&mut self) {
+    pub fn rewind(&mut self) {
         unsafe { ext4_dir_entry_rewind(&mut self.raw as _) }
     }
 }
@@ -35,6 +36,17 @@ impl ReadDir {
 pub struct DirEntry {
     raw: ext4_direntry,
     root: CName,
+}
+
+impl Debug for DirEntry {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("DirEntry")
+            .field("name", &self.name())
+            .field("path", &self.path())
+            .field("inode", &self.inode())
+            .field("file_type", &self.file_type())
+            .finish()
+    }
 }
 
 impl DirEntry {
@@ -56,8 +68,18 @@ impl DirEntry {
         self.raw.inode
     }
 
-    pub fn file_type(&self) -> FileType {
-        FileType(self.raw.inode_type)
+    pub fn file_type(&self) -> Result<FileType> {
+        let ty = self.raw.inode_type;
+        match ty as u32 {
+            EXT4_DE_CHRDEV => Ok(FileType { mode: S_IFCHR }),
+            EXT4_DE_FIFO => Ok(FileType { mode: S_IFIFO }),
+            EXT4_DE_SYMLINK => Ok(FileType { mode: S_IFLNK }),
+            EXT4_DE_REG_FILE => Ok(FileType { mode: S_IFREG }),
+            EXT4_DE_SOCK => Ok(FileType { mode: S_IFSOCK }),
+            EXT4_DE_DIR => Ok(FileType { mode: S_IFDIR }),
+            EXT4_DE_BLKDEV => Ok(FileType { mode: S_IFBLK }),
+            _ => Err(Error::InvalidArgument),
+        }
     }
 }
 

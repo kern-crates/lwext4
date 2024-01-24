@@ -1,4 +1,5 @@
 use crate::error::{errno_to_result, result_to_errno, Error, Result};
+use crate::types::MountStats;
 use alloc::boxed::Box;
 use alloc::ffi::CString;
 use alloc::string::String;
@@ -64,7 +65,7 @@ impl<T: BlockDeviceInterface> Drop for BlockDevice<T> {
         unsafe {
             let block_size = (*self.raw.bdif).ph_bsize;
             let buf = (*self.raw.bdif).ph_bbuf;
-            if buf != null_mut() {
+            if !buf.is_null() {
                 Vec::<u8>::from_raw_parts(buf, 0, block_size as usize);
             }
             let _ = Box::<T>::from_raw((*self.raw.bdif).p_user as _);
@@ -103,6 +104,7 @@ impl CName {
 }
 
 pub struct RegisterHandle<T: BlockDeviceInterface> {
+    #[allow(unused)]
     device: Pin<Box<BlockDevice<T>>>,
     dev_name: CName,
 }
@@ -134,14 +136,16 @@ impl<T: BlockDeviceInterface> Drop for RegisterHandle<T> {
 }
 
 pub struct MountHandle<T: BlockDeviceInterface> {
+    #[allow(unused)]
     register_handle: RegisterHandle<T>,
-    mount_handle: CName,
+    pub(super) mount_point: CName,
 }
 
 impl<T: BlockDeviceInterface> MountHandle<T> {
     pub fn mount(
         register_handle: RegisterHandle<T>,
         mount_point: String,
+        journal_recovery: bool,
         read_only: bool,
     ) -> Result<Self> {
         let c_mount_point = CName::new(mount_point)?;
@@ -152,20 +156,33 @@ impl<T: BlockDeviceInterface> MountHandle<T> {
                 c_mount_point.as_ptr(),
                 read_only,
             ))?;
+            if journal_recovery {
+                errno_to_result(ext4_recover(c_mount_point.as_ptr()))?;
+            }
         };
         let handle = MountHandle {
             register_handle,
-            mount_handle: c_mount_point,
+            mount_point: c_mount_point,
         };
         Ok(handle)
+    }
+    pub fn stats(&self) -> Result<MountStats> {
+        let mut statfs = MountStats::new();
+        unsafe {
+            errno_to_result(ext4_mount_point_stats(
+                self.mount_point.as_ptr(),
+                statfs.deref_mut() as _,
+            ))?;
+        }
+        Ok(statfs)
     }
 }
 
 impl<T: BlockDeviceInterface> Drop for MountHandle<T> {
     fn drop(&mut self) {
-        info!("Unmounting {}", self.mount_handle.as_str());
+        info!("Unmounting {}", self.mount_point.as_str());
         unsafe {
-            ext4_umount(self.mount_handle.as_ptr());
+            ext4_umount(self.mount_point.as_ptr());
         }
     }
 }
@@ -260,8 +277,8 @@ impl<T: BlockDeviceInterface> BlockDeviceInterfaceExt for T {
 
     unsafe extern "C" fn close(bdev: *mut ext4_blockdev) -> errno_t {
         let r: Result<()> = try {
-            let mut device: &mut BlockDevice<T> = transmute(bdev);
-            T::close(&mut device)?;
+            let device: &mut BlockDevice<T> = transmute(bdev);
+            T::close(device)?;
         };
         result_to_errno(r)
     }

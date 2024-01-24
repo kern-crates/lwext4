@@ -2,17 +2,17 @@ use crate::block::{BlockDevice, BlockDeviceConfig, BlockDeviceInterface};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::pin::Pin;
 
-pub type SimpleBlockDevice<T> = BlockDevice<SimpleBlockDeviceInterface<T>>;
+pub type DefaultBlockDevice<T> = BlockDevice<DefaultInterface<T>>;
 
-pub struct SimpleBlockDeviceInterface<T: Read + Write + Seek>(T, BlockDeviceConfig);
+pub struct DefaultInterface<T: Read + Write + Seek>(T, BlockDeviceConfig);
 
-impl<T: Read + Write + Seek> SimpleBlockDeviceInterface<T> {
+impl<T: Read + Write + Seek> DefaultInterface<T> {
     pub fn new_device(inner: T, config: BlockDeviceConfig) -> Pin<Box<BlockDevice<Self>>> {
         BlockDevice::new(Self(inner, config))
     }
 }
 
-impl<T: Read + Write + Seek> BlockDeviceInterface for SimpleBlockDeviceInterface<T> {
+impl<T: Read + Write + Seek> BlockDeviceInterface for DefaultInterface<T> {
     fn open(&mut self) -> crate::error::Result<BlockDeviceConfig> {
         Ok(self.1)
     }
