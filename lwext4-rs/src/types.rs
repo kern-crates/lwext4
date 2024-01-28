@@ -89,6 +89,18 @@ impl FileType {
             _ => '?',
         }
     }
+    pub(super) fn to_ext4(&self) -> u8 {
+        (match self {
+            FileType { mode: S_IFBLK } => EXT4_DE_BLKDEV,
+            FileType { mode: S_IFCHR } => EXT4_DE_CHRDEV,
+            FileType { mode: S_IFDIR } => EXT4_DE_DIR,
+            FileType { mode: S_IFIFO } => EXT4_DE_FIFO,
+            FileType { mode: S_IFLNK } => EXT4_DE_SYMLINK,
+            FileType { mode: S_IFREG } => EXT4_DE_REG_FILE,
+            FileType { mode: S_IFSOCK } => EXT4_DE_SOCK,
+            _ => EXT4_DE_UNKNOWN,
+        }) as u8
+    }
 }
 
 #[derive(Copy, Clone)]

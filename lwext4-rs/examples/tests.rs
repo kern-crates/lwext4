@@ -43,6 +43,7 @@ fn main() -> Result<(), Error> {
     test_file_test(&mut fs, 1024 * 64, 16)?; // 1GB
 
     test_xattr(&mut fs)?;
+    test_mknod(&mut fs)?;
     test_link(&mut fs)?;
     test_rename(&mut fs)?;
     test_link_rename(&mut fs)?;
@@ -68,6 +69,8 @@ fn test_cleanup<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<(), E
     err(fs.remove_dir("/mp/dir1"));
     err(fs.remove_dir_all("/mp/dir2"));
     err(fs.remove_file("/mp/hello-rename.txt"));
+    err(fs.remove_file("/mp/fifo"));
+    err(fs.remove_file("/mp/blk"));
     println!("test_cleanup Pass");
     Ok(())
 }
@@ -284,5 +287,13 @@ fn test_link_rename<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<(
 
     let link = fs.read_link("/mp/hello2.txt")?;
     assert_eq!(link, "/mp/hello.txt");
+    Ok(())
+}
+
+fn test_mknod<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<(), Error> {
+    println!("test_mknod:");
+    fs.mknod("/mp/fifo", FileType::from_char('c'), 111)?;
+    fs.mknod("/mp/blk", FileType::from_char('b'), 222)?;
+    println!("test_mknod Pass");
     Ok(())
 }

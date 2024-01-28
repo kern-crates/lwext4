@@ -2,7 +2,7 @@ use crate::block::CName;
 use crate::dir::ReadDir;
 use crate::error::{errno_to_result, Error, Result};
 use crate::file::{raw_metadata, OpenOptions};
-use crate::types::{Metadata, Permissions};
+use crate::types::{FileType, Metadata, Permissions};
 use crate::{BlockDeviceInterface, MountHandle};
 use core::ptr::null_mut;
 use log::info;
@@ -80,7 +80,7 @@ impl<T: BlockDeviceInterface> FileSystem<T> {
     }
 
     /// Create a hard link at the provided path which points to the original file.
-        pub fn hard_link<P: AsRef<str>, Q: AsRef<str>>(&self, original: P, link: Q) -> Result<()> {
+    pub fn hard_link<P: AsRef<str>, Q: AsRef<str>>(&self, original: P, link: Q) -> Result<()> {
         let original = CName::new(original.as_ref().to_string())?;
         let link = CName::new(link.as_ref().to_string())?;
         unsafe { errno_to_result(ext4_flink(original.as_ptr(), link.as_ptr())) }
@@ -247,5 +247,14 @@ impl<T: BlockDeviceInterface> FileSystem<T> {
             ))?;
         }
         Ok(())
+    }
+
+    /// Create a device node at the provided path
+    ///
+    /// The ty must not be regular file, directory, or unknown type.If filetype is char device or block device,
+    /// the device number will become the payload in the inode.
+    pub fn mknod<P: AsRef<str>>(&self, path: P, ty: FileType, dev: u32) -> Result<()> {
+        let path = CName::new(path.as_ref().to_string())?;
+        unsafe { errno_to_result(ext4_mknod(path.as_ptr(), ty.to_ext4() as _, dev)) }
     }
 }

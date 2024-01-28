@@ -23,7 +23,7 @@
 | :heavy_check_mark:       | `ext4_atime_set`/`ext4_mtime_set`/`ext4_ctime_set` | `File::set_times` / `File::set_modified`                |
 | :heavy_check_mark:       | `ext4_fsymlink`                                    | `FileSystem::soft_link`                                 |
 | :heavy_check_mark:       | `ext4_readlink`                                    | `FileSystem::read_link`                                 |
-| :heavy_multiplication_x: | `ext4_mknod`                                       |                                                         |
+| :heavy_check_mark: | `ext4_mknod`                                       |                                                         |
 | :heavy_check_mark:       | `ext4_setxattr`                                    | `FileSytem::set_xattr`                                  |
 | :heavy_check_mark:       | `ext4_getxattr`                                    | `FileSystem::get_xattr`                                 |
 | :heavy_check_mark:       | `ext4_listxattr`                                   | `FileSystem::list_xattr`                                |

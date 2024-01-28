@@ -29,7 +29,7 @@ pub use debug::*;
 pub use error::Error;
 pub use fs::FileSystem;
 pub use types::{
-    DebugFlags, FileTimes, FsType, MetaDataExt, Metadata, MountStats, Permissions, Time,
+    DebugFlags, FileTimes, FileType, FsType, MetaDataExt, Metadata, MountStats, Permissions, Time,
 };
 
 pub use mkfs::{ExtFs, FsBuilder};
