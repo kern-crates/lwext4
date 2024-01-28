@@ -18,7 +18,7 @@ use lwext4_sys::ext4::*;
 
 #[repr(transparent)]
 pub struct BlockDevice<T: BlockDeviceInterface> {
-    raw: ext4_blockdev,
+    pub(super) raw: ext4_blockdev,
     data: PhantomData<T>,
 }
 
@@ -101,6 +101,9 @@ impl CName {
     pub fn as_str(&self) -> &str {
         self.0.to_str().unwrap()
     }
+    pub fn len(&self) -> usize {
+        self.0.as_bytes_with_nul().len()
+    }
 }
 
 pub struct RegisterHandle<T: BlockDeviceInterface> {
@@ -110,6 +113,7 @@ pub struct RegisterHandle<T: BlockDeviceInterface> {
 }
 
 impl<T: BlockDeviceInterface> RegisterHandle<T> {
+    /// Register a block device to the file system
     pub fn register(bdev: Pin<Box<BlockDevice<T>>>, dev_name: String) -> Result<Self> {
         let c_name = CName::new(dev_name)?;
         let handle = unsafe {
@@ -142,6 +146,7 @@ pub struct MountHandle<T: BlockDeviceInterface> {
 }
 
 impl<T: BlockDeviceInterface> MountHandle<T> {
+    /// Mount a block device to the file system at the provided mount point
     pub fn mount(
         register_handle: RegisterHandle<T>,
         mount_point: String,

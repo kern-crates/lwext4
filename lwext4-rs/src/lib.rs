@@ -19,11 +19,17 @@ mod fs;
 
 mod debug;
 mod file;
+mod mkfs;
 mod types;
 
 pub use block::{
     BlockDevice, BlockDeviceConfig, BlockDeviceInterface, MountHandle, RegisterHandle,
 };
 pub use debug::*;
+pub use error::Error;
 pub use fs::FileSystem;
-pub use types::{DebugFlags, FileTimes, MetaDataExt, Metadata, MountStats, Permissions, Time};
+pub use types::{
+    DebugFlags, FileTimes, FsType, MetaDataExt, Metadata, MountStats, Permissions, Time,
+};
+
+pub use mkfs::{ExtFs, FsBuilder};

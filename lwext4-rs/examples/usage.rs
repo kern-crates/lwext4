@@ -61,6 +61,5 @@ fn main() {
         let res = file.metadata();
         println!("{:#x?}", res);
     }
-
     // drop(mount_handler);
 }

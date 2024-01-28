@@ -2,6 +2,7 @@ use fs_extra::dir::CopyOptions;
 use make_cmd::make;
 use std::path::PathBuf;
 use std::{env, fs};
+
 fn main() {
     println!("cargo:rerun-if-changed=./lwext4");
     println!("cargo:rerun-if-changed=./ext4.h");
@@ -46,29 +47,11 @@ fn main() {
         &copy_options,
     )
     .unwrap();
-    let bindings = bindgen::builder()
-        .header(
-            build_generic_dir
-                .join("include")
-                .join("ext4.h")
-                .to_str()
-                .unwrap(),
-        )
-        .clang_arg(format!(
-            "-I{}",
-            dbg!(build_generic_dir.join("include").to_str().unwrap())
-        ))
-        .use_core()
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks))
-        .generate()
-        .unwrap();
-    bindings.write_to_file("src/ext4.rs").unwrap();
-
     // let bindings = bindgen::builder()
     //     .header(
     //         build_generic_dir
     //             .join("include")
-    //             .join("ext4_inode.h")
+    //             .join("ext4.h")
     //             .to_str()
     //             .unwrap(),
     //     )
@@ -80,5 +63,20 @@ fn main() {
     //     .parse_callbacks(Box::new(bindgen::CargoCallbacks))
     //     .generate()
     //     .unwrap();
-    // bindings.write_to_file("src/ext4_inode.rs").unwrap()
+    // bindings.write_to_file("src/ext4.rs").unwrap();
+
+    // let path = OpenOptions::new()
+    //     .read(true)
+    //     .open("./ext4.h");
+    let bindings = bindgen::builder()
+        .header("./ext4.h")
+        .clang_arg(format!(
+            "-I{}",
+            dbg!(build_generic_dir.join("include").to_str().unwrap())
+        ))
+        .use_core()
+        .parse_callbacks(Box::new(bindgen::CargoCallbacks))
+        .generate()
+        .unwrap();
+    bindings.write_to_file("src/ext4.rs").unwrap()
 }

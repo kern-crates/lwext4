@@ -500,3 +500,10 @@ impl FileTimes {
         self
     }
 }
+
+#[derive(Debug, Copy, Clone)]
+pub enum FsType {
+    Ext2 = 2,
+    Ext3 = 3,
+    Ext4 = 4,
+}

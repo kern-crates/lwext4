@@ -109,10 +109,12 @@ pub struct File {
 }
 
 impl File {
+    /// Get the metadata of a file
     pub fn metadata(&self) -> Result<Metadata> {
         raw_metadata(&self.path)
     }
 
+    /// Set the file size
     pub fn set_len(&mut self, size: u64) -> Result<()> {
         unsafe {
             errno_to_result(ext4_ftruncate(&mut self.raw as _, size))?;
@@ -120,6 +122,7 @@ impl File {
         Ok(())
     }
 
+    /// Modify the times of a file
     pub fn set_times(&mut self, times: FileTimes) -> Result<()> {
         if let Some(a) = times.accessed {
             unsafe {
@@ -139,6 +142,7 @@ impl File {
         Ok(())
     }
 
+    /// Set the modified time of a file
     pub fn set_modified(&mut self, time: Time) -> Result<()> {
         unsafe {
             errno_to_result(ext4_mtime_set(self.path.as_ptr(), time.into()))?;
@@ -146,6 +150,7 @@ impl File {
         Ok(())
     }
 
+    /// Set the permissions of a file
     pub fn set_permissions(&mut self, perm: Permissions) -> Result<()> {
         unsafe {
             errno_to_result(ext4_mode_set(self.path.as_ptr(), perm.0))?;
@@ -153,6 +158,7 @@ impl File {
         Ok(())
     }
 
+    /// Reset the file pointer to the beginning
     pub fn rewind(&mut self) -> Result<()> {
         self.seek(SeekFrom::Start(0))?;
         Ok(())

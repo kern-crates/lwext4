@@ -4,7 +4,6 @@ use crate::error::{errno_to_result, Error, Result};
 use crate::file::{raw_metadata, OpenOptions};
 use crate::types::{Metadata, Permissions};
 use crate::{BlockDeviceInterface, MountHandle};
-use core::ffi::CStr;
 use core::ptr::null_mut;
 use log::info;
 use lwext4_sys::ext4::*;
@@ -12,6 +11,7 @@ use lwext4_sys::ext4::*;
 pub struct FileSystem<T: BlockDeviceInterface> {
     mp: MountHandle<T>,
 }
+
 impl<T: BlockDeviceInterface> Drop for FileSystem<T> {
     fn drop(&mut self) {
         info!("disable cache and stop journal");
@@ -31,19 +31,23 @@ impl<T: BlockDeviceInterface> FileSystem<T> {
         Ok(FileSystem { mp })
     }
 
+    /// Get the mount point of the file system
     pub fn mount_handle(&self) -> &MountHandle<T> {
         &self.mp
     }
 
+    /// Create a OpenOptions builder for opening a file
     pub fn file_builder(&self) -> OpenOptions {
         OpenOptions::new()
     }
 
+    /// Get the metadata of a file
     pub fn metadata<P: AsRef<str>>(&self, path: P) -> Result<Metadata> {
         let path = CName::new(path.as_ref().to_string())?;
         raw_metadata(&path)
     }
 
+    /// Open a directory at the provided path
     pub fn readdir<P: AsRef<str>>(&self, path: P) -> Result<ReadDir> {
         let mut raw_dir = ext4_dir {
             f: ext4_file {
@@ -69,49 +73,51 @@ impl<T: BlockDeviceInterface> FileSystem<T> {
         Ok(ReadDir { raw: raw_dir, path })
     }
 
+    /// Remove the file at the provided path
     pub fn remove_file<P: AsRef<str>>(&self, path: P) -> Result<()> {
         let path = CName::new(path.as_ref().to_string())?;
         unsafe { errno_to_result(ext4_fremove(path.as_ptr())) }
     }
 
-    pub fn hard_link<P: AsRef<str>, Q: AsRef<str>>(&self, original: P, link: Q) -> Result<()> {
+    /// Create a hard link at the provided path which points to the original file.
+        pub fn hard_link<P: AsRef<str>, Q: AsRef<str>>(&self, original: P, link: Q) -> Result<()> {
         let original = CName::new(original.as_ref().to_string())?;
         let link = CName::new(link.as_ref().to_string())?;
         unsafe { errno_to_result(ext4_flink(original.as_ptr(), link.as_ptr())) }
     }
 
+    /// Create a new, empty directory at the provided path
+    ///
+    /// It will create all intermediate-level directories if they do not exist.
     pub fn create_dir<P: AsRef<str>>(&self, path: P) -> Result<()> {
         let path = CName::new(path.as_ref().to_string())?;
         unsafe { errno_to_result(ext4_dir_mk(path.as_ptr())) }
     }
+
+    /// It is the same as [create_dir](#method.create_dir)
     pub fn create_dir_all<P: AsRef<str>>(&self, path: P) -> Result<()> {
         self.create_dir(path)
     }
 
+    /// Remove a directory at this path, after removing all its contents.
     pub fn remove_dir<P: AsRef<str>>(&self, path: P) -> Result<()> {
         let path = CName::new(path.as_ref().to_string())?;
         unsafe { errno_to_result(ext4_dir_rm(path.as_ptr())) }
     }
+
+    /// It is the same as [remove_dir](#method.remove_dir)
     pub fn remove_dir_all<P: AsRef<str>>(&self, path: P) -> Result<()> {
-        for dir_en in self.readdir(&path)? {
-            let ty = dir_en.file_type();
-            if let Ok(ty) = ty {
-                if ty.is_dir() {
-                    self.remove_dir_all(dir_en.path())?;
-                } else {
-                    self.remove_file(dir_en.path())?;
-                }
-            }
-        }
         self.remove_dir(path)
     }
 
+    /// Rename a file or directory to a new name, replacing the original file if to already exists.
     pub fn rename<P: AsRef<str>, Q: AsRef<str>>(&self, from: P, to: Q) -> Result<()> {
         let from_cs = CName::new(from.as_ref().to_string())?;
         let to_cs = CName::new(to.as_ref().to_string())?;
         unsafe { errno_to_result(ext4_frename(from_cs.as_ptr(), to_cs.as_ptr())) }
     }
 
+    /// Get the target of a symbolic link
     pub fn read_link<P: AsRef<str>>(&self, path: P) -> Result<String> {
         let path = CName::new(path.as_ref().to_string())?;
         let mut buf = [0u8; 255];
@@ -127,11 +133,20 @@ impl<T: BlockDeviceInterface> FileSystem<T> {
         Ok(String::from_utf8_lossy(&buf[..read]).to_string())
     }
 
+    /// Set the permissions of a file or directory
+    ///
+    /// # Example
+    /// ```no_run
+    /// use lwext4_rs::Permissions;
+    /// let p = Permissions::from_mode(0o777);
+    /// // fs.set_permissions("/mp/hello.txt", p);
+    /// ```
     pub fn set_permissions<P: AsRef<str>>(&self, path: P, perm: Permissions) -> Result<()> {
         let path = CName::new(path.as_ref().to_string())?;
         unsafe { errno_to_result(ext4_mode_set(path.as_ptr(), perm.0)) }
     }
 
+    /// Check if a file or directory exists at this path.
     pub fn exists<P: AsRef<str>>(&self, path: P) -> Result<bool> {
         let path = CName::new(path.as_ref().to_string())?;
         let res = unsafe { errno_to_result(ext4_inode_exist(path.as_ptr(), 0)) };
@@ -144,22 +159,23 @@ impl<T: BlockDeviceInterface> FileSystem<T> {
         }
     }
 
+    /// Create a symbolic link which points to the original file.
     pub fn soft_link<P: AsRef<str>, Q: AsRef<str>>(&self, original: P, link: Q) -> Result<()> {
         let original = CName::new(original.as_ref().to_string())?;
         let link = CName::new(link.as_ref().to_string())?;
-        unsafe { errno_to_result(ext4_fsymlink(link.as_ptr(), original.as_ptr())) }
+        unsafe { errno_to_result(ext4_fsymlink(original.as_ptr(), link.as_ptr())) }
     }
 
-    pub fn getxattr<P: AsRef<str>, Q: AsRef<str>>(&self, path: P, name: Q) -> Result<Vec<u8>> {
+    /// Get the extended attribute of a file
+    pub fn get_xattr<P: AsRef<str>, Q: AsRef<str>>(&self, path: P, name: Q) -> Result<Vec<u8>> {
         let path = CName::new(path.as_ref().to_string())?;
-        let name = CName::new(name.as_ref().to_string())?;
         let mut buf = [0u8; 255];
         let mut read = 0usize;
         unsafe {
             errno_to_result(ext4_getxattr(
                 path.as_ptr(),
-                name.as_ptr(),
-                name.as_str().len(),
+                name.as_ref().as_ptr() as _,
+                name.as_ref().len(),
                 buf.as_mut_ptr() as _,
                 buf.len(),
                 &mut read as _,
@@ -168,6 +184,7 @@ impl<T: BlockDeviceInterface> FileSystem<T> {
         Ok(buf[..read].to_vec())
     }
 
+    /// Set an extended attribute of a file
     pub fn set_xattr<P: AsRef<str>, Q: AsRef<str>>(
         &self,
         path: P,
@@ -175,12 +192,11 @@ impl<T: BlockDeviceInterface> FileSystem<T> {
         value: &[u8],
     ) -> Result<()> {
         let path = CName::new(path.as_ref().to_string())?;
-        let name = CName::new(name.as_ref().to_string())?;
         unsafe {
             errno_to_result(ext4_setxattr(
                 path.as_ptr(),
-                name.as_ptr(),
-                name.as_str().len(),
+                name.as_ref().as_ptr() as _,
+                name.as_ref().len(),
                 value.as_ptr() as _,
                 value.len(),
             ))?;
@@ -188,7 +204,8 @@ impl<T: BlockDeviceInterface> FileSystem<T> {
         Ok(())
     }
 
-    pub fn list_xattr<P: AsRef<str>>(&self, path: P) -> Result<Vec<String>> {
+    /// List all extended attributes of a file
+    pub fn list_xattr<P: AsRef<str>>(&self, path: P) -> Result<Vec<Vec<u8>>> {
         let path = CName::new(path.as_ref().to_string())?;
         let mut buf = Vec::<u8>::with_capacity(255);
         let mut read = 0usize;
@@ -207,28 +224,26 @@ impl<T: BlockDeviceInterface> FileSystem<T> {
             buf.resize(buf.len() + 255, 0);
         }
         let mut res = Vec::new();
-        let mut i = 0;
-        while i < read {
-            let name = unsafe {
-                CStr::from_bytes_with_nul_unchecked(&buf[i..])
-                    .to_str()
-                    .unwrap()
-                    .trim_matches('\0')
-            };
-            res.push(name.to_string());
-            i += name.len() + 1;
-        }
+
+        buf.split(|&x| x == 0).for_each(|x| {
+            if x.len() > 0 {
+                res.push(x.to_vec());
+            }
+        });
         Ok(res)
     }
 
-    pub fn remove_xattr<P: AsRef<str>, Q: AsRef<str>>(&self, path: P, name: Q) -> Result<()> {
+    /// Remove an extended attribute.
+    ///
+    /// Warning: This function is not available
+    #[allow(unused)]
+    fn remove_xattr<P: AsRef<str>, Q: AsRef<str>>(&self, path: P, name: Q) -> Result<()> {
         let path = CName::new(path.as_ref().to_string())?;
-        let name = CName::new(name.as_ref().to_string())?;
         unsafe {
             errno_to_result(ext4_removexattr(
                 path.as_ptr(),
-                name.as_ptr(),
-                name.as_str().len(),
+                name.as_ref().as_ptr() as _,
+                name.as_ref().len(),
             ))?;
         }
         Ok(())

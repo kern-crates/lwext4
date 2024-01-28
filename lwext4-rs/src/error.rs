@@ -5,7 +5,7 @@ use lwext4_sys::ext4::*;
 
 pub type Result<T> = core::result::Result<T, Error>;
 /// from ext4_errno.h
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum Error {
     OperationNotPermitted = EPERM as isize,
     NoEntry = ENOENT as isize,
@@ -80,6 +80,12 @@ pub fn errno_to_result(errno: errno_t) -> Result<()> {
         Ok(())
     } else {
         Err(Error::from(errno as isize))
+    }
+}
+
+impl From<Error> for core::fmt::Error {
+    fn from(_value: Error) -> Self {
+        core::fmt::Error
     }
 }
 

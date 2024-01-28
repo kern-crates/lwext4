@@ -8075,11 +8075,649 @@ extern "C" {
     #[doc = "@brief   Rewine directory entry offset.\n\n @param   dir Directory handle."]
     pub fn ext4_dir_entry_rewind(dir: *mut ext4_dir);
 }
-#[doc = "@brief   The filesystem this block device belongs to."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ext4_fs {
-    pub _address: u8,
+    pub read_only: bool,
+    pub bdev: *mut ext4_blockdev,
+    pub sb: ext4_sblock,
+    pub inode_block_limits: [u64; 4usize],
+    pub inode_blocks_per_level: [u64; 4usize],
+    pub last_inode_bg_id: u32,
+    pub jbd_fs: *mut jbd_fs,
+    pub jbd_journal: *mut jbd_journal,
+    pub curr_trans: *mut jbd_trans,
+}
+#[test]
+fn bindgen_test_layout_ext4_fs() {
+    const UNINIT: ::core::mem::MaybeUninit<ext4_fs> = ::core::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::core::mem::size_of::<ext4_fs>(),
+        1136usize,
+        concat!("Size of: ", stringify!(ext4_fs))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<ext4_fs>(),
+        8usize,
+        concat!("Alignment of ", stringify!(ext4_fs))
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).read_only) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_fs),
+            "::",
+            stringify!(read_only)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).bdev) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_fs),
+            "::",
+            stringify!(bdev)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).sb) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_fs),
+            "::",
+            stringify!(sb)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).inode_block_limits) as usize - ptr as usize },
+        1040usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_fs),
+            "::",
+            stringify!(inode_block_limits)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).inode_blocks_per_level) as usize - ptr as usize },
+        1072usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_fs),
+            "::",
+            stringify!(inode_blocks_per_level)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).last_inode_bg_id) as usize - ptr as usize },
+        1104usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_fs),
+            "::",
+            stringify!(last_inode_bg_id)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).jbd_fs) as usize - ptr as usize },
+        1112usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_fs),
+            "::",
+            stringify!(jbd_fs)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).jbd_journal) as usize - ptr as usize },
+        1120usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_fs),
+            "::",
+            stringify!(jbd_journal)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).curr_trans) as usize - ptr as usize },
+        1128usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_fs),
+            "::",
+            stringify!(curr_trans)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ext4_block_group_ref {
+    pub block: ext4_block,
+    pub block_group: *mut ext4_bgroup,
+    pub fs: *mut ext4_fs,
+    pub index: u32,
+    pub dirty: bool,
+}
+#[test]
+fn bindgen_test_layout_ext4_block_group_ref() {
+    const UNINIT: ::core::mem::MaybeUninit<ext4_block_group_ref> =
+        ::core::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::core::mem::size_of::<ext4_block_group_ref>(),
+        48usize,
+        concat!("Size of: ", stringify!(ext4_block_group_ref))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<ext4_block_group_ref>(),
+        8usize,
+        concat!("Alignment of ", stringify!(ext4_block_group_ref))
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).block) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_block_group_ref),
+            "::",
+            stringify!(block)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).block_group) as usize - ptr as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_block_group_ref),
+            "::",
+            stringify!(block_group)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).fs) as usize - ptr as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_block_group_ref),
+            "::",
+            stringify!(fs)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).index) as usize - ptr as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_block_group_ref),
+            "::",
+            stringify!(index)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).dirty) as usize - ptr as usize },
+        44usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_block_group_ref),
+            "::",
+            stringify!(dirty)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ext4_inode_ref {
+    pub block: ext4_block,
+    pub inode: *mut ext4_inode,
+    pub fs: *mut ext4_fs,
+    pub index: u32,
+    pub dirty: bool,
+}
+#[test]
+fn bindgen_test_layout_ext4_inode_ref() {
+    const UNINIT: ::core::mem::MaybeUninit<ext4_inode_ref> = ::core::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::core::mem::size_of::<ext4_inode_ref>(),
+        48usize,
+        concat!("Size of: ", stringify!(ext4_inode_ref))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<ext4_inode_ref>(),
+        8usize,
+        concat!("Alignment of ", stringify!(ext4_inode_ref))
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).block) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_inode_ref),
+            "::",
+            stringify!(block)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).inode) as usize - ptr as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_inode_ref),
+            "::",
+            stringify!(inode)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).fs) as usize - ptr as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_inode_ref),
+            "::",
+            stringify!(fs)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).index) as usize - ptr as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_inode_ref),
+            "::",
+            stringify!(index)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).dirty) as usize - ptr as usize },
+        44usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_inode_ref),
+            "::",
+            stringify!(dirty)
+        )
+    );
+}
+extern "C" {
+    #[doc = "@brief Initialize filesystem and read all needed data.\n @param fs Filesystem instance to be initialized\n @param bdev Identifier if device with the filesystem\n @param read_only Mark the filesystem as read-only.\n @return Error code"]
+    pub fn ext4_fs_init(
+        fs: *mut ext4_fs,
+        bdev: *mut ext4_blockdev,
+        read_only: bool,
+    ) -> ::core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "@brief Destroy filesystem instance (used by unmount operation).\n @param fs Filesystem to be destroyed\n @return Error code"]
+    pub fn ext4_fs_fini(fs: *mut ext4_fs) -> ::core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "@brief Check filesystem's features, if supported by this driver\n Function can return EOK and set read_only flag. It mean's that\n there are some not-supported features, that can cause problems\n during some write operations.\n @param fs        Filesystem to be checked\n @param read_only Flag if filesystem should be mounted only for reading\n @return Error code"]
+    pub fn ext4_fs_check_features(fs: *mut ext4_fs, read_only: *mut bool) -> ::core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "@brief Get reference to block group specified by index.\n @param fs   Filesystem to find block group on\n @param bgid Index of block group to load\n @param ref  Output pointer for reference\n @return Error code"]
+    pub fn ext4_fs_get_block_group_ref(
+        fs: *mut ext4_fs,
+        bgid: u32,
+        ref_: *mut ext4_block_group_ref,
+    ) -> ::core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "@brief Put reference to block group.\n @param ref Pointer for reference to be put back\n @return Error code"]
+    pub fn ext4_fs_put_block_group_ref(ref_: *mut ext4_block_group_ref) -> ::core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "@brief Get reference to i-node specified by index.\n @param fs    Filesystem to find i-node on\n @param index Index of i-node to load\n @param ref   Output pointer for reference\n @return Error code"]
+    pub fn ext4_fs_get_inode_ref(
+        fs: *mut ext4_fs,
+        index: u32,
+        ref_: *mut ext4_inode_ref,
+    ) -> ::core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "@brief Reset blocks field of i-node.\n @param fs        Filesystem to reset blocks field of i-inode on\n @param inode_ref ref Pointer for inode to be operated on"]
+    pub fn ext4_fs_inode_blocks_init(fs: *mut ext4_fs, inode_ref: *mut ext4_inode_ref);
+}
+extern "C" {
+    #[doc = "@brief Put reference to i-node.\n @param ref Pointer for reference to be put back\n @return Error code"]
+    pub fn ext4_fs_put_inode_ref(ref_: *mut ext4_inode_ref) -> ::core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "@brief Convert filetype to inode mode.\n @param filetype File type\n @return inode mode"]
+    pub fn ext4_fs_correspond_inode_mode(filetype: ::core::ffi::c_int) -> u32;
+}
+extern "C" {
+    #[doc = "@brief Allocate new i-node in the filesystem.\n @param fs        Filesystem to allocated i-node on\n @param inode_ref Output pointer to return reference to allocated i-node\n @param filetype  File type of newly created i-node\n @return Error code"]
+    pub fn ext4_fs_alloc_inode(
+        fs: *mut ext4_fs,
+        inode_ref: *mut ext4_inode_ref,
+        filetype: ::core::ffi::c_int,
+    ) -> ::core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "@brief Release i-node and mark it as free.\n @param inode_ref I-node to be released\n @return Error code"]
+    pub fn ext4_fs_free_inode(inode_ref: *mut ext4_inode_ref) -> ::core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "@brief Truncate i-node data blocks.\n @param inode_ref I-node to be truncated\n @param new_size  New size of inode (must be < current size)\n @return Error code"]
+    pub fn ext4_fs_truncate_inode(
+        inode_ref: *mut ext4_inode_ref,
+        new_size: u64,
+    ) -> ::core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "@brief Compute 'goal' for inode index\n @param inode_ref Reference to inode, to allocate block for\n @return goal"]
+    pub fn ext4_fs_inode_to_goal_block(inode_ref: *mut ext4_inode_ref) -> ext4_fsblk_t;
+}
+extern "C" {
+    #[doc = "@brief Compute 'goal' for allocation algorithm (For blockmap).\n @param inode_ref Reference to inode, to allocate block for\n @return error code"]
+    pub fn ext4_fs_indirect_find_goal(
+        inode_ref: *mut ext4_inode_ref,
+        goal: *mut ext4_fsblk_t,
+    ) -> ::core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "@brief Get physical block address by logical index of the block.\n @param inode_ref I-node to read block address from\n @param iblock            Logical index of block\n @param fblock            Output pointer for return physical\n                          block address\n @param support_unwritten Indicate whether unwritten block range\n                          is supported under the current context\n @return Error code"]
+    pub fn ext4_fs_get_inode_dblk_idx(
+        inode_ref: *mut ext4_inode_ref,
+        iblock: ext4_lblk_t,
+        fblock: *mut ext4_fsblk_t,
+        support_unwritten: bool,
+    ) -> ::core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "@brief Initialize a part of unwritten range of the inode.\n @param inode_ref I-node to proceed on.\n @param iblock    Logical index of block\n @param fblock    Output pointer for return physical block address\n @return Error code"]
+    pub fn ext4_fs_init_inode_dblk_idx(
+        inode_ref: *mut ext4_inode_ref,
+        iblock: ext4_lblk_t,
+        fblock: *mut ext4_fsblk_t,
+    ) -> ::core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "@brief Append following logical block to the i-node.\n @param inode_ref I-node to append block to\n @param fblock    Output physical block address of newly allocated block\n @param iblock    Output logical number of newly allocated block\n @return Error code"]
+    pub fn ext4_fs_append_inode_dblk(
+        inode_ref: *mut ext4_inode_ref,
+        fblock: *mut ext4_fsblk_t,
+        iblock: *mut ext4_lblk_t,
+    ) -> ::core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "@brief   Increment inode link count.\n @param   inode_ref none handle"]
+    pub fn ext4_fs_inode_links_count_inc(inode_ref: *mut ext4_inode_ref);
+}
+extern "C" {
+    #[doc = "@brief   Decrement inode link count.\n @param   inode_ref none handle"]
+    pub fn ext4_fs_inode_links_count_dec(inode_ref: *mut ext4_inode_ref);
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ext4_mkfs_info {
+    pub len: u64,
+    pub block_size: u32,
+    pub blocks_per_group: u32,
+    pub inodes_per_group: u32,
+    pub inode_size: u32,
+    pub inodes: u32,
+    pub journal_blocks: u32,
+    pub feat_ro_compat: u32,
+    pub feat_compat: u32,
+    pub feat_incompat: u32,
+    pub bg_desc_reserve_blocks: u32,
+    pub dsc_size: u16,
+    pub uuid: [u8; 16usize],
+    pub journal: bool,
+    pub label: *const ::core::ffi::c_char,
+}
+#[test]
+fn bindgen_test_layout_ext4_mkfs_info() {
+    const UNINIT: ::core::mem::MaybeUninit<ext4_mkfs_info> = ::core::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::core::mem::size_of::<ext4_mkfs_info>(),
+        80usize,
+        concat!("Size of: ", stringify!(ext4_mkfs_info))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<ext4_mkfs_info>(),
+        8usize,
+        concat!("Alignment of ", stringify!(ext4_mkfs_info))
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).len) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mkfs_info),
+            "::",
+            stringify!(len)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).block_size) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mkfs_info),
+            "::",
+            stringify!(block_size)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).blocks_per_group) as usize - ptr as usize },
+        12usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mkfs_info),
+            "::",
+            stringify!(blocks_per_group)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).inodes_per_group) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mkfs_info),
+            "::",
+            stringify!(inodes_per_group)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).inode_size) as usize - ptr as usize },
+        20usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mkfs_info),
+            "::",
+            stringify!(inode_size)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).inodes) as usize - ptr as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mkfs_info),
+            "::",
+            stringify!(inodes)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).journal_blocks) as usize - ptr as usize },
+        28usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mkfs_info),
+            "::",
+            stringify!(journal_blocks)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).feat_ro_compat) as usize - ptr as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mkfs_info),
+            "::",
+            stringify!(feat_ro_compat)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).feat_compat) as usize - ptr as usize },
+        36usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mkfs_info),
+            "::",
+            stringify!(feat_compat)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).feat_incompat) as usize - ptr as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mkfs_info),
+            "::",
+            stringify!(feat_incompat)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).bg_desc_reserve_blocks) as usize - ptr as usize },
+        44usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mkfs_info),
+            "::",
+            stringify!(bg_desc_reserve_blocks)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).dsc_size) as usize - ptr as usize },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mkfs_info),
+            "::",
+            stringify!(dsc_size)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).uuid) as usize - ptr as usize },
+        50usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mkfs_info),
+            "::",
+            stringify!(uuid)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).journal) as usize - ptr as usize },
+        66usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mkfs_info),
+            "::",
+            stringify!(journal)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).label) as usize - ptr as usize },
+        72usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mkfs_info),
+            "::",
+            stringify!(label)
+        )
+    );
+}
+extern "C" {
+    pub fn ext4_mkfs_read_info(
+        bd: *mut ext4_blockdev,
+        info: *mut ext4_mkfs_info,
+    ) -> ::core::ffi::c_int;
+}
+extern "C" {
+    pub fn ext4_mkfs(
+        fs: *mut ext4_fs,
+        bd: *mut ext4_blockdev,
+        info: *mut ext4_mkfs_info,
+        fs_type: ::core::ffi::c_int,
+    ) -> ::core::ffi::c_int;
+}
+#[doc = "@brief   Mount point descriptor."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ext4_mountpoint {
+    #[doc = "@brief   Mount done flag."]
+    pub mounted: bool,
+    #[doc = "@brief   Mount point name (@ref ext4_mount)"]
+    pub name: [::core::ffi::c_char; 33usize],
+    #[doc = "@brief   OS dependent lock/unlock functions."]
+    pub os_locks: *const ext4_lock,
+    #[doc = "@brief   Ext4 filesystem internals."]
+    pub fs: ext4_fs,
+}
+#[test]
+fn bindgen_test_layout_ext4_mountpoint() {
+    const UNINIT: ::core::mem::MaybeUninit<ext4_mountpoint> = ::core::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::core::mem::size_of::<ext4_mountpoint>(),
+        1184usize,
+        concat!("Size of: ", stringify!(ext4_mountpoint))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<ext4_mountpoint>(),
+        8usize,
+        concat!("Alignment of ", stringify!(ext4_mountpoint))
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).mounted) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mountpoint),
+            "::",
+            stringify!(mounted)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).name) as usize - ptr as usize },
+        1usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mountpoint),
+            "::",
+            stringify!(name)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).os_locks) as usize - ptr as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mountpoint),
+            "::",
+            stringify!(os_locks)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).fs) as usize - ptr as usize },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ext4_mountpoint),
+            "::",
+            stringify!(fs)
+        )
+    );
 }
 pub type __builtin_va_list = [__va_list_tag; 1usize];
 #[repr(C)]
@@ -8145,9 +8783,18 @@ fn bindgen_test_layout___va_list_tag() {
         )
     );
 }
-#[doc = "@brief   Mount point handle."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct ext4_mountpoint {
+pub struct jbd_fs {
+    pub _address: u8,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct jbd_journal {
+    pub _address: u8,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct jbd_trans {
     pub _address: u8,
 }
