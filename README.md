@@ -6,6 +6,7 @@ A crate for interfacing with [lwext4](https://github.com/gkostka/lwext4) from Ru
 You can find the details of the interface in [interface.md](interface.md).
 
 ## Usage
+
 ```rust
 fn main(){
     let file = OpenOptions::new()
@@ -40,7 +41,13 @@ fn main(){
 }
 ```
 
+## Examples
+```
+RUST_LOG=info cargo run --example usage/tests/mkfs
+```
+
 ## Reference
+
 [lwext4 (C)](https://github.com/gkostka/lwext4)
 
 [lwext4 (rust)](https://github.com/djdisodo/lwext4)

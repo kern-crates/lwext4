@@ -1,7 +1,7 @@
 # Interface
 
 |                          | lwext4-c                                           | lwext4-rs                                               |
-| ------------------------ | -------------------------------------------------- | ------------------------------------------------------- |
+| ------------------------ | -------------------------------------------------- |---------------------------------------------------------|
 | :heavy_check_mark:       | `ext4_device_register`/`ext4_device_unregister`    | `RegisterHandle::register` / `drop`                     |
 | :heavy_check_mark:       | lwext4-c`ext4_mount`/`ext4_umount`                 | lwext4-rs`MountHandle::mount` / `drop`                  |
 | :heavy_check_mark:       | `ext4_journal_start`/`ext4_journal_stop`           | `FileSystem::new` / `drop`                              |
@@ -23,7 +23,7 @@
 | :heavy_check_mark:       | `ext4_atime_set`/`ext4_mtime_set`/`ext4_ctime_set` | `File::set_times` / `File::set_modified`                |
 | :heavy_check_mark:       | `ext4_fsymlink`                                    | `FileSystem::soft_link`                                 |
 | :heavy_check_mark:       | `ext4_readlink`                                    | `FileSystem::read_link`                                 |
-| :heavy_check_mark: | `ext4_mknod`                                       |                                                         |
+| :heavy_check_mark: | `ext4_mknod`                                       | `FileSystem::mknod`                                      |
 | :heavy_check_mark:       | `ext4_setxattr`                                    | `FileSytem::set_xattr`                                  |
 | :heavy_check_mark:       | `ext4_getxattr`                                    | `FileSystem::get_xattr`                                 |
 | :heavy_check_mark:       | `ext4_listxattr`                                   | `FileSystem::list_xattr`                                |
