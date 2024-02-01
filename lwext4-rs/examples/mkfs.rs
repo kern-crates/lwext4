@@ -29,7 +29,7 @@ fn main() {
         .label("ext4fs")
         .build(blk)
         .unwrap();
-    println!("{:#x?}", fs)
+    println!("{:#x?}", fs.fs_info())
 
     // let blk = fs.take_device();
 }

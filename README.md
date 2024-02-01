@@ -46,6 +46,14 @@ fn main(){
 RUST_LOG=info cargo run --example usage/tests/mkfs
 ```
 
+## no_std
+This crate is `no_std` compatible. You can disable the default features to use it in a `no_std` environment.
+
+```toml
+[dependencies]
+lwext4-rs = { version = "0.1.0", default-features = false }
+```
+
 ## Reference
 
 [lwext4 (C)](https://github.com/gkostka/lwext4)

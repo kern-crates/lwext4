@@ -1,20 +1,63 @@
 use crate::error::{errno_to_result, Result};
 use crate::types::FsType;
 use crate::{BlockDevice, BlockDeviceInterface, Error};
+use alloc::boxed::Box;
 use alloc::ffi::CString;
 use core::ffi::CStr;
-use core::fmt::{Debug, Formatter};
+use core::fmt::Debug;
 use core::mem::transmute;
 use core::pin::Pin;
 use core::ptr::null_mut;
 use lwext4_sys::ext4::{ext4_fs, ext4_mkfs, ext4_mkfs_info, ext4_mkfs_read_info, ext4_sblock};
-pub struct ExtFs<T: BlockDeviceInterface> {
+pub struct BuildExtFs<T: BlockDeviceInterface> {
     raw_fs: ext4_fs,
     device: Pin<Box<BlockDevice<T>>>,
     raw_info: ext4_mkfs_info,
 }
+#[derive(Debug, Clone)]
+pub struct ExtFsInfo {
+    pub len: u64,
+    pub block_size: u32,
+    pub blocks_per_group: u32,
+    pub inodes_per_group: u32,
+    pub inode_size: u32,
+    pub inodes: u32,
+    pub journal_blocks: u32,
+    pub feat_ro_compat: u32,
+    pub feat_compat: u32,
+    pub feat_incompat: u32,
+    pub bg_desc_reserve_blocks: u32,
+    pub dsc_size: u16,
+    pub uuid: [u8; 16usize],
+    pub journal: bool,
+    pub label: String,
+}
 
-impl<T: BlockDeviceInterface> ExtFs<T> {
+impl From<ext4_mkfs_info> for ExtFsInfo {
+    fn from(value: ext4_mkfs_info) -> Self {
+        Self {
+            len: value.len,
+            block_size: value.block_size,
+            blocks_per_group: value.blocks_per_group,
+            inodes_per_group: value.inodes_per_group,
+            inode_size: value.inode_size,
+            inodes: value.inodes,
+            journal_blocks: value.journal_blocks,
+            feat_ro_compat: value.feat_ro_compat,
+            feat_compat: value.feat_compat,
+            feat_incompat: value.feat_incompat,
+            bg_desc_reserve_blocks: value.bg_desc_reserve_blocks,
+            dsc_size: value.dsc_size,
+            uuid: value.uuid,
+            journal: value.journal,
+            label: unsafe { CStr::from_ptr(value.label) }
+                .to_string_lossy()
+                .to_string(),
+        }
+    }
+}
+
+impl<T: BlockDeviceInterface> BuildExtFs<T> {
     fn new(bdev: Pin<Box<BlockDevice<T>>>, ext_fs_info: ext4_mkfs_info) -> Self {
         unsafe {
             Self {
@@ -193,13 +236,13 @@ impl FsBuilder {
     pub fn build<T: BlockDeviceInterface>(
         self,
         bdev: Pin<Box<BlockDevice<T>>>,
-    ) -> Result<ExtFs<T>> {
+    ) -> Result<BuildExtFs<T>> {
         let ty = match self.ty {
             Some(ty) => ty,
             None => return Err(Error::InvalidArgument),
         };
         let info = self.get_fs_info()?;
-        let mut fs = ExtFs::new(bdev, info);
+        let mut fs = BuildExtFs::new(bdev, info);
         unsafe {
             errno_to_result(ext4_mkfs(
                 &mut fs.raw_fs as _,
@@ -212,35 +255,17 @@ impl FsBuilder {
     }
 }
 
-impl<T: BlockDeviceInterface> ExtFs<T> {
+impl<T: BlockDeviceInterface> BuildExtFs<T> {
     pub fn take_device(self) -> Pin<Box<BlockDevice<T>>> {
         self.device
     }
-}
-
-impl<T: BlockDeviceInterface> Debug for ExtFs<T> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+    pub fn fs_info(&self) -> Result<ExtFsInfo> {
         unsafe {
             errno_to_result(ext4_mkfs_read_info(
                 transmute(&self.device.raw),
                 transmute(&self.raw_info),
             ))?;
         }
-        let label = unsafe { CStr::from_ptr(self.raw_info.label) };
-        f.debug_struct("ExtFs")
-            .field("Size", &self.raw_info.len)
-            .field("Block size", &self.raw_info.block_size)
-            .field("Blocks per group", &self.raw_info.blocks_per_group)
-            .field("Inodes per group", &self.raw_info.inodes_per_group)
-            .field("Inode size", &self.raw_info.inode_size)
-            .field("Inodes", &self.raw_info.inodes)
-            .field("Journal blocks", &self.raw_info.journal_blocks)
-            .field("Features ro_compat", &self.raw_info.feat_ro_compat)
-            .field("Features compat", &self.raw_info.feat_compat)
-            .field("Features incompat", &self.raw_info.feat_incompat)
-            .field("BG desc reserve", &self.raw_info.bg_desc_reserve_blocks)
-            .field("Descriptor size", &self.raw_info.dsc_size)
-            .field("Label", &label)
-            .finish()
+        Ok(self.raw_info.into())
     }
 }

@@ -3,11 +3,12 @@ use crate::dir::ReadDir;
 use crate::error::{errno_to_result, Error, Result};
 use crate::file::{raw_metadata, OpenOptions};
 use crate::types::{FileType, Metadata, Permissions};
-use crate::{BlockDeviceInterface, MountHandle};
+use crate::{BlockDeviceInterface, FileTimes, MetaDataExt, MountHandle, Time};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 use core::ptr::null_mut;
 use log::info;
 use lwext4_sys::ext4::*;
-
 pub struct FileSystem<T: BlockDeviceInterface> {
     mp: MountHandle<T>,
 }
@@ -256,5 +257,51 @@ impl<T: BlockDeviceInterface> FileSystem<T> {
     pub fn mknod<P: AsRef<str>>(&self, path: P, ty: FileType, dev: u32) -> Result<()> {
         let path = CName::new(path.as_ref().to_string())?;
         unsafe { errno_to_result(ext4_mknod(path.as_ptr(), ty.to_ext4() as _, dev)) }
+    }
+
+    /// Change the owner and group of the specified path.
+    ///
+    /// Specifying either the uid or gid as None will leave it unchanged.
+    pub fn chown<P: AsRef<str>>(&self, path: P, uid: Option<u32>, gid: Option<u32>) -> Result<()> {
+        let path = CName::new(path.as_ref().to_string())?;
+        let (uid, gid) = if uid.is_none() && gid.is_none() {
+            let meta = raw_metadata(&path)?;
+            let uid = if uid.is_none() { Some(meta.uid()) } else { uid };
+            let gid = if gid.is_none() { Some(meta.gid()) } else { gid };
+            (uid, gid)
+        } else {
+            (uid, gid)
+        };
+        assert!(uid.is_some() && gid.is_some());
+        unsafe { errno_to_result(ext4_owner_set(path.as_ptr(), uid.unwrap(), gid.unwrap())) }
+    }
+    /// Modify the times of a file
+    pub fn set_times<P: AsRef<str>>(&self, path: P, times: FileTimes) -> Result<()> {
+        let path = CName::new(path.as_ref().to_string())?;
+        if let Some(a) = times.accessed {
+            unsafe {
+                errno_to_result(ext4_atime_set(path.as_ptr(), a.into()))?;
+            }
+        }
+        if let Some(m) = times.modified {
+            unsafe {
+                errno_to_result(ext4_mtime_set(path.as_ptr(), m.into()))?;
+            }
+        }
+        if let Some(c) = times.created {
+            unsafe {
+                errno_to_result(ext4_ctime_set(path.as_ptr(), c.into()))?;
+            }
+        }
+        Ok(())
+    }
+
+    /// Set the modified time of a file
+    pub fn set_modified<P: AsRef<str>>(&mut self, path: P, time: Time) -> Result<()> {
+        let path = CName::new(path.as_ref().to_string())?;
+        unsafe {
+            errno_to_result(ext4_mtime_set(path.as_ptr(), time.into()))?;
+        }
+        Ok(())
     }
 }

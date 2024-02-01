@@ -35,6 +35,7 @@ pub struct FileType {
 }
 
 impl FileType {
+    /// Create a new `FileType` from the given character.
     pub fn from_char(c: char) -> Self {
         match c {
             'b' => FileType { mode: S_IFBLK },
@@ -48,7 +49,7 @@ impl FileType {
     }
     #[must_use]
     pub fn is_dir(&self) -> bool {
-        self.is(S_IFCHR)
+        self.is(S_IFDIR)
     }
     #[must_use]
     pub fn is_file(&self) -> bool {
@@ -77,6 +78,8 @@ impl FileType {
     fn is(&self, ft: u32) -> bool {
         self.mode == ft
     }
+
+    /// Get the character representing the file type.
     pub fn as_char(&self) -> char {
         match self.mode {
             S_IFBLK => 'b',
@@ -275,6 +278,13 @@ impl FileAttr {
             self.raw.blocks_count_lo as u64 | ((self.raw.osd2.linux2.blocks_high as u64) << 32)
         }
     }
+    fn st_rdev(&self) -> u32 {
+        let blk = self.raw.blocks[0];
+        let blk1 = self.raw.blocks[1];
+        // if dev > 0xFFFF, blocks[1] is used
+        // else blocks[0] is used
+        blk | blk1
+    }
 }
 
 impl Debug for FileAttr {
@@ -300,11 +310,13 @@ pub struct Metadata(pub(super) FileAttr);
 pub struct Permissions(pub(super) u32);
 
 impl Permissions {
+    /// Check if any class (owner, group, others) has write permission.
     pub fn readonly(&self) -> bool {
         // check if any class (owner, group, others) has write permission
         self.0 & 0o222 == 0
     }
 
+    /// Set the readonly flag for all classes (owner, group, others).
     pub fn set_readonly(&mut self, readonly: bool) {
         if readonly {
             // remove write permission for all classes; equivalent to `chmod a-w <file>`
@@ -315,8 +327,19 @@ impl Permissions {
         }
     }
 
+    /// Create a new `Permissions` from the given mode bits.
     pub fn from_mode(mode: u32) -> Self {
         Self(mode & 0o777)
+    }
+
+    /// Get the mode bits for this set of permissions.
+    pub fn mode(&self) -> u32 {
+        self.0
+    }
+
+    /// Set the mode bits for this set of permissions.
+    pub fn set_mode(&mut self, mode: u32) {
+        *self = Self::from_mode(mode);
     }
 }
 
@@ -396,6 +419,7 @@ pub trait MetaDataExt {
     fn ctime(&self) -> i64;
     fn ctime_nsec(&self) -> i64;
     fn blocks(&self) -> u64;
+    fn rdev(&self) -> u32;
 }
 
 impl MetaDataExt for Metadata {
@@ -437,6 +461,9 @@ impl MetaDataExt for Metadata {
     }
     fn blocks(&self) -> u64 {
         self.0.st_blocks()
+    }
+    fn rdev(&self) -> u32 {
+        self.0.st_rdev()
     }
 }
 

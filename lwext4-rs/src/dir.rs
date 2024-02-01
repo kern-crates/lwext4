@@ -1,6 +1,7 @@
 use crate::block::CName;
 use crate::error::{Error, Result};
 use crate::types::FileType;
+use crate::File;
 use alloc::string::{String, ToString};
 use core::ffi::CStr;
 use core::fmt::Debug;
@@ -31,6 +32,14 @@ impl ReadDir {
     pub fn rewind(&mut self) {
         unsafe { ext4_dir_entry_rewind(&mut self.raw as _) }
     }
+    /// Use the directory as file
+    pub fn as_file(&self) -> File {
+        File::new(self.raw.f.clone(), self.path.clone())
+    }
+    /// Get the directory path
+    pub fn path(&self) -> String {
+        self.path.as_str().to_string()
+    }
 }
 
 pub struct DirEntry {
@@ -50,6 +59,7 @@ impl Debug for DirEntry {
 }
 
 impl DirEntry {
+    /// Get the name of the directory entry
     pub fn name(&self) -> &str {
         unsafe {
             CStr::from_bytes_with_nul_unchecked(&self.raw.name)
@@ -59,15 +69,18 @@ impl DirEntry {
         }
     }
 
+    /// Get the path of the directory entry
     pub fn path(&self) -> String {
         self.root.as_str().to_string() + self.name()
     }
 
+    /// Get the inode of the directory entry
     pub fn inode(&self) -> u32 {
         // isn't 64 bit inode supported?
         self.raw.inode
     }
 
+    /// Get the file type of the directory entry
     pub fn file_type(&self) -> Result<FileType> {
         let ty = self.raw.inode_type;
         match ty as u32 {

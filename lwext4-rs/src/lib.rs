@@ -26,10 +26,11 @@ pub use block::{
     BlockDevice, BlockDeviceConfig, BlockDeviceInterface, MountHandle, RegisterHandle,
 };
 pub use debug::*;
-pub use error::Error;
+pub use dir::{DirEntry, ReadDir};
+pub use error::{Error, Result};
+pub use file::File;
 pub use fs::FileSystem;
+pub use mkfs::{BuildExtFs, FsBuilder};
 pub use types::{
     DebugFlags, FileTimes, FileType, FsType, MetaDataExt, Metadata, MountStats, Permissions, Time,
 };
-
-pub use mkfs::{ExtFs, FsBuilder};

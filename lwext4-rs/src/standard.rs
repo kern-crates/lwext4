@@ -23,7 +23,8 @@ impl<T: Read + Write + Seek> BlockDeviceInterface for DefaultInterface<T> {
         block_id: u64,
         _block_count: u32,
     ) -> crate::error::Result<usize> {
-        self.0.seek(SeekFrom::Start(block_id * 512)).unwrap();
+        let blk_size = self.1.block_size as u64;
+        self.0.seek(SeekFrom::Start(block_id * blk_size)).unwrap();
         self.0.read_exact(&mut buf).unwrap();
         Ok(buf.len())
     }
@@ -34,7 +35,8 @@ impl<T: Read + Write + Seek> BlockDeviceInterface for DefaultInterface<T> {
         block_id: u64,
         _block_count: u32,
     ) -> crate::error::Result<usize> {
-        self.0.seek(SeekFrom::Start(block_id * 512)).unwrap();
+        let blk_size = self.1.block_size as u64;
+        self.0.seek(SeekFrom::Start(block_id * blk_size)).unwrap();
         self.0.write_all(buf).unwrap();
         Ok(buf.len())
     }

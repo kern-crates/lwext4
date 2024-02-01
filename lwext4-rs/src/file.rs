@@ -109,6 +109,9 @@ pub struct File {
 }
 
 impl File {
+    pub(super) fn new(raw: ext4_file, path: CName) -> Self {
+        Self { raw, path }
+    }
     /// Get the metadata of a file
     pub fn metadata(&self) -> Result<Metadata> {
         raw_metadata(&self.path)
@@ -162,6 +165,18 @@ impl File {
     pub fn rewind(&mut self) -> Result<()> {
         self.seek(SeekFrom::Start(0))?;
         Ok(())
+    }
+
+    /// Get the file pointer position
+    pub fn stream_position(&mut self) -> Result<u64> {
+        let pos = unsafe { ext4_ftell(&mut self.raw as _) };
+        assert_eq!(pos, self.raw.fpos);
+        Ok(pos)
+    }
+
+    /// Get the file path
+    pub fn path(&self) -> String {
+        self.path.as_str().to_string()
     }
 }
 

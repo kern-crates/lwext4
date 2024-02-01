@@ -3,7 +3,7 @@ use lwext4_rs::FsType::Ext4;
 use lwext4_rs::*;
 use std::io::Cursor;
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<()> {
     env_logger::init();
     let mut buf = Vec::with_capacity(1024 * 1024 * 3);
     unsafe {
@@ -29,7 +29,7 @@ fn main() -> Result<(), Error> {
         .label("ext4fs")
         .build(blk)
         .unwrap();
-    println!("{:#x?}", fs);
+    println!("{:#x?}", fs.fs_info());
 
     let blk = fs.take_device();
     let register_handler = RegisterHandle::register(blk, "ext4fs".to_string()).unwrap();
@@ -53,9 +53,9 @@ fn main() -> Result<(), Error> {
     Ok(())
 }
 
-fn test_cleanup<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<(), Error> {
+fn test_cleanup<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<()> {
     println!("test_cleanup:");
-    let err = |e: Result<(), Error>| match e {
+    let err = |e: Result<()>| match e {
         Ok(_) => {}
         Err(Error::NoEntry) => {}
         _ => {
@@ -75,7 +75,7 @@ fn test_cleanup<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<(), E
     Ok(())
 }
 
-fn test_dir_ls<T: BlockDeviceInterface>(fs: &mut FileSystem<T>, path: &str) -> Result<(), Error> {
+fn test_dir_ls<T: BlockDeviceInterface>(fs: &mut FileSystem<T>, path: &str) -> Result<()> {
     println!("ls {}:", path);
     let dir = fs.readdir(path)?;
     for entry in dir {
@@ -85,7 +85,7 @@ fn test_dir_ls<T: BlockDeviceInterface>(fs: &mut FileSystem<T>, path: &str) -> R
     Ok(())
 }
 
-fn test_dir_test<T: BlockDeviceInterface>(fs: &mut FileSystem<T>, len: usize) -> Result<(), Error> {
+fn test_dir_test<T: BlockDeviceInterface>(fs: &mut FileSystem<T>, len: usize) -> Result<()> {
     println!("test_dir_test: {}", len);
     println!("directory create: /mp/dir1");
     fs.create_dir("/mp/dir1").map_err(|e| {
@@ -124,7 +124,7 @@ fn test_file_test<T: BlockDeviceInterface>(
     fs: &mut FileSystem<T>,
     size: usize,
     count: usize,
-) -> Result<(), Error> {
+) -> Result<()> {
     println!("test_file_test: rw size: {}, rw count: {}", size, count);
     let mut file = fs
         .file_builder()
@@ -203,7 +203,7 @@ fn test_file_test<T: BlockDeviceInterface>(
     Ok(())
 }
 
-fn test_xattr<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<(), Error> {
+fn test_xattr<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<()> {
     println!("test_xattr");
     let res = fs.get_xattr("/mp/hello.txt", "user.test");
     println!("getxattr: {:?}", res);
@@ -254,7 +254,7 @@ fn test_xattr<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<(), Err
     Ok(())
 }
 
-fn test_link<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<(), Error> {
+fn test_link<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<()> {
     println!("test_link:");
     fs.hard_link("/mp/hello.txt", "/mp/hello1.txt")?;
     println!("hard_link: /mp/hello.txt -> /mp/hello1.txt");
@@ -265,7 +265,7 @@ fn test_link<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<(), Erro
     Ok(())
 }
 
-fn test_rename<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<(), Error> {
+fn test_rename<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<()> {
     println!("test_rename:");
     fs.rename("/mp/hello.txt", "/mp/hello-rename.txt")?;
     println!("rename: /mp/hello.txt -> /mp/hello-rename.txt");
@@ -274,7 +274,7 @@ fn test_rename<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<(), Er
     Ok(())
 }
 
-fn test_link_rename<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<(), Error> {
+fn test_link_rename<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<()> {
     println!("test_link_rename:");
     let mut file = fs.file_builder().read(true).open("/mp/hello-rename.txt")?;
     let meta = file.metadata()?;
@@ -290,10 +290,16 @@ fn test_link_rename<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<(
     Ok(())
 }
 
-fn test_mknod<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<(), Error> {
+fn test_mknod<T: BlockDeviceInterface>(fs: &mut FileSystem<T>) -> Result<()> {
     println!("test_mknod:");
-    fs.mknod("/mp/fifo", FileType::from_char('c'), 111)?;
-    fs.mknod("/mp/blk", FileType::from_char('b'), 222)?;
+    fs.mknod("/mp/fifo", FileType::from_char('c'), 0xfffff)?;
+    fs.mknod("/mp/blk", FileType::from_char('b'), 0xff)?;
+    let meta = fs.metadata("/mp/fifo")?;
+    assert_eq!(meta.len(), 0);
+    assert_eq!(meta.rdev(), 0xfffff);
+    let meta = fs.metadata("/mp/blk")?;
+    assert_eq!(meta.len(), 0);
+    assert_eq!(meta.rdev(), 0xff);
     println!("test_mknod Pass");
     Ok(())
 }
