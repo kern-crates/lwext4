@@ -5,7 +5,7 @@ use lwext4_sys::ext4::*;
 
 pub type Result<T> = core::result::Result<T, Error>;
 /// from ext4_errno.h
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum Error {
     OperationNotPermitted = EPERM as isize,
     NoEntry = ENOENT as isize,

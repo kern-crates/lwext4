@@ -468,7 +468,7 @@ impl MetaDataExt for Metadata {
 }
 
 /// A raw filesystem time.
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
 pub struct Time {
     pub epoch_secs: u64,
     pub nanos: Option<u32>,
