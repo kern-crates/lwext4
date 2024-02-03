@@ -2,7 +2,7 @@ use crate::block::CName;
 use crate::error::{errno_to_result, Error, Result};
 use crate::types::{FileAttr, FileTimes, Metadata, OpenFlags, Permissions, Time};
 use alloc::string::ToString;
-
+use alloc::string::String;
 use core::ptr::null_mut;
 use embedded_io::{ErrorType, Read, Seek, SeekFrom, Write};
 use lwext4_sys::ext4::*;

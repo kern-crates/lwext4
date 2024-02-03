@@ -4,6 +4,13 @@ use core::fmt::{Debug, Formatter};
 use core::ops::{Deref, DerefMut};
 use lwext4_sys::ext4::*;
 
+pub const S_IFIFO:u32 = 4096;
+pub const S_IFCHR:u32 = 8192;
+pub const S_IFBLK:u32 = 24576;
+pub const S_IFDIR:u32 = 16384;
+pub const S_IFREG:u32 = 32768;
+pub const S_IFLNK:u32 = 40960;
+pub const S_IFSOCK:u32 = 49152;
 bitflags! {
     pub struct DebugFlags: u32 {
         const BALLOC = DEBUG_BALLOC;

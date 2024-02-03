@@ -1,6 +1,6 @@
 use crate::block::CName;
 use crate::error::{Error, Result};
-use crate::types::FileType;
+use crate::types::*;
 use crate::File;
 use alloc::string::{String, ToString};
 use core::ffi::CStr;

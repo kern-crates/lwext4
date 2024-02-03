@@ -8,6 +8,8 @@ use core::fmt::Debug;
 use core::mem::transmute;
 use core::pin::Pin;
 use core::ptr::null_mut;
+use crate::alloc::string::ToString;
+use alloc::string::String;
 use lwext4_sys::ext4::{ext4_fs, ext4_mkfs, ext4_mkfs_info, ext4_mkfs_read_info, ext4_sblock};
 pub struct BuildExtFs<T: BlockDeviceInterface> {
     raw_fs: ext4_fs,

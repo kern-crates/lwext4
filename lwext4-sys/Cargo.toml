@@ -10,5 +10,3 @@ edition = "2021"
 
 [build-dependencies]
 bindgen = "0.65"
-fs_extra = "1.2.0"
-make-cmd = "0.1.0"
