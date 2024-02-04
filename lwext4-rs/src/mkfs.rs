@@ -1,15 +1,15 @@
+use crate::alloc::string::ToString;
 use crate::error::{errno_to_result, Result};
 use crate::types::FsType;
 use crate::{BlockDevice, BlockDeviceInterface, Error};
 use alloc::boxed::Box;
 use alloc::ffi::CString;
+use alloc::string::String;
 use core::ffi::CStr;
 use core::fmt::Debug;
 use core::mem::transmute;
 use core::pin::Pin;
 use core::ptr::null_mut;
-use crate::alloc::string::ToString;
-use alloc::string::String;
 use lwext4_sys::ext4::{ext4_fs, ext4_mkfs, ext4_mkfs_info, ext4_mkfs_read_info, ext4_sblock};
 pub struct BuildExtFs<T: BlockDeviceInterface> {
     raw_fs: ext4_fs,
