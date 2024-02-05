@@ -54,6 +54,35 @@ This crate is `no_std` compatible. You can disable the default features to use i
 lwext4-rs = { version = "0.1.0", default-features = false }
 ```
 
+In the lwext4 configuration, debug output is enabled, so it relies on `printf/fflush/stdout` for output. In addition, it also relies on several functions:
+
+1. `malloc` / `free` / `calloc` / `realloc`
+
+2. `strcmp` / `strcpy` / `strncmp` 
+
+3. `qsort`
+
+To handle these dependencies, you can define these functions manually or rely on some existing implementation.
+
+The[ tinyrlibc](https://github.com/rust-embedded-community/tinyrlibc)  library provides implementations of 1 and 2.  In order to implement `printf`, you can refer to [prinf_compat](https://docs.rs/printf-compat/0.1.1/printf_compat/). [c-ward](https://github.com/sunfishcode/c-ward) provides the implementation of `qsort`, you can copy it directly from here. In the end, all we need to implement are `fflush `and `stdout`. Usually, we only need to implement these two as empty functions.
+
+```rust
+#[no_mangle]
+static stdout: usize = 0;
+
+#[no_mangle]
+extern "C" fn fflush(file: *mut c_void) -> c_int{
+    assert!(file.is_null());
+    0
+}
+```
+
+## mkfs
+
+```rust
+cargo run -p lwext4-mkfs -- --help
+```
+
 ## Reference
 
 [lwext4 (C)](https://github.com/gkostka/lwext4)

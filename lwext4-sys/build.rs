@@ -63,7 +63,6 @@ fn build_for_os(lwext4: &PathBuf) {
 /// and switch to the old value after completing the generation.
 fn build_for_none(lwext4: &PathBuf) {
     let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
-    println!("cargo:XXX={}", arch);
     let lwext4_build = lwext4.join("build_musl-generic");
     let lib_path = lwext4.join("build_musl-generic/src/liblwext4.a");
     if !lwext4_build.exists() || !lib_path.exists() {
