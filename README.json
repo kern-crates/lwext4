@@ -1,0 +1,10 @@
+{
+    "name": "lwext4",
+    "description": "A crate for interfacing with lwext4 from Rust.",
+    "authors": [{
+      "name": "chenlinfeng ",
+      "email": "chenlinfeng25@outlook.com"
+    }],
+    "keywords": ["fs", "ext3", "ext4"],
+    "doc_url": "https://github.com/kern-crates/lwext4/blob/main/README.md"
+  }
